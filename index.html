@@ -157,7 +157,7 @@ const SECCIONES = {
     titulo:'**Escribe aquí** el título de la noticia', texto:''}
 };
 const STORY = ['Nacional','Internacional','Judicial','Salud','Entretenimiento','Política'];
-const estado = {storySec:'Nacional', storyDatos:{etiqueta:'NACIONAL', titulo:'Escribe aquí el título de la noticia', texto:'Escribe una breve descripción de la noticia.'}, formato:'feed', bn:true, seccion:'finde', pieza:'noticia', fondo:'gris', foto:null, zoom:1, ox:0, oy:0, datos:{}};
+const estado = {storySec:'Nacional', storyDatos:{etiqueta:'NACIONAL', titulo:'Escribe aquí el título de la noticia', texto:'Escribe una breve descripción de la noticia.'}, formato:'feed', bn:true, seccion:'nacional', pieza:'noticia', fondo:'gris', foto:null, zoom:1, ox:0, oy:0, datos:{}};
 for (const k in SECCIONES){ const s=SECCIONES[k]; estado.datos[k]={etiqueta:s.etiqueta,titulo:s.titulo,texto:s.texto,total:s.total||4,actual:2}; }
 
 const imgs = {};
@@ -228,7 +228,7 @@ function foto(x,y,w,h){
   } else {
     const s=Math.max(w/im.width,h/im.height)*estado.zoom, dw=im.width*s, dh=im.height*s;
     const mx=(dw-w)/2, my=(dh-h)/2;
-    const src=estado.formato==='story' ? grises(im) : (SECCIONES[estado.seccion].tipo==='deportes'?duotono(im):im);
+    const src=(estado.formato!=='story' && SECCIONES[estado.seccion].tipo==='deportes')?duotono(im):im;
     ctx.drawImage(src, x-mx+estado.ox*mx, y-my+estado.oy*my, dw, dh);
   }
   ctx.restore();
@@ -285,7 +285,7 @@ function disenoSplit(s,d){
   puntos(tot,act,s.puntosY,s.gap,s.puntos);
 }
 function disenoTitular(s,d){
-  const oscuro=estado.fondo==='negro', tinta=oscuro?C.blanco:C.negro;
+  const oscuro=estado.seccion!=='internacional', tinta=oscuro?C.blanco:C.negro;
   ctx.fillStyle=oscuro?C.negro:C.gris; ctx.fillRect(0,0,1080,1350);
   etiqueta(d.etiqueta.toUpperCase(),61,51,34,52,39,C.rojo,C.blanco);
   const pill=oscuro?imgs.pill_claro:imgs.pill_oscuro; if(pill) ctx.drawImage(pill,728,60,305,55);
@@ -370,10 +370,10 @@ function datosActuales(){ return estado.formato==='story'?estado.storyDatos:esta
 function sincronizar(){
   const s=SECCIONES[estado.seccion], d=datosActuales();
   if(estado.formato==='story') seg($('secciones'),STORY.map(n=>[n,n]),estado.storySec,v=>{estado.storySec=v; estado.storyDatos.etiqueta=v.toUpperCase(); sincronizar();});
-  else seg($('secciones'),Object.entries(SECCIONES).map(([k,v])=>[k,v.nombre]),estado.seccion,v=>{estado.seccion=v; sincronizar();});
+  else seg($('secciones'),['nacional','deportes','internacional','finde','personajes','funados'].map(k=>[k,SECCIONES[k].nombre]),estado.seccion,v=>{estado.seccion=v; sincronizar();});
   seg($('formatos'),[['feed','Feed (1080 × 1350)'],['story','Historia (1080 × 1920)']],estado.formato,v=>{estado.formato=v; sincronizar();});
   const story=estado.formato==='story', esSplit=s.tipo==='split' && !story;
-  $('campoPieza').hidden=!esSplit; $('campoFondo').hidden=story||s.tipo!=='titular'; $('campoTexto').hidden=!story&&s.tipo==='deportes'; $('hintTitulo').hidden=story||s.tipo!=='deportes'; $('campoSeccion').hidden=story;
+  $('campoPieza').hidden=!esSplit; $('campoFondo').hidden=true; $('campoTexto').hidden=!story&&s.tipo==='deportes'; $('hintTitulo').hidden=story||s.tipo!=='deportes'; $('campoSeccion').hidden=story;
   seg($('piezas'),[['portada','Portada'],['noticia','Lámina interior']],estado.pieza,v=>{estado.pieza=v; sincronizar();});
   seg($('fondos'),[['gris','Gris claro'],['negro','Negro']],estado.fondo,v=>{estado.fondo=v; sincronizar();});
   $('campos').hidden = esSplit && estado.pieza==='portada';
